@@ -2,9 +2,9 @@
 class SAScore
 {
 private:
-	int a;
+	
 public:
-	SAScore();
+	SAScore(double **data, double r, double step);
 	~SAScore();
 };
 

@@ -2,8 +2,9 @@
 
 
 
-SAScore::SAScore()
+SAScore::SAScore(double **data, double r, double step)
 {
+
 }
 
 
