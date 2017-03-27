@@ -36,9 +36,12 @@ void SAScore::Gridding(double r, double step) {
 
 }
 
+void SAScore::Dehydrating() {
+	
+}
+
 void SAScore::PRINT() {
-	//for (int x = 0; x < 1; x++)
-	int x = 6;
+	for (int x = 0; x < 1; x++)
 		for (int y = 0; y < elt; y++) {
 			for (int z = 0; z < elt; z++)
 				cout << r_grid[0][x][y][z]<< ' ';
