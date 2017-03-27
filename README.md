@@ -2,7 +2,7 @@
 
 "Improved technique for calculating X-ray scattering intensity of biopolymers in solution: Evaluation of the form, volume, and surface of a particle"
 
-Authors:M. Yu. Pavlov, B. A. Fedorov;
+Authors: M. Yu. Pavlov, B. A. Fedorov
 
 First published: June 1983
 
