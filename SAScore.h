@@ -1,6 +1,5 @@
 #pragma once
 #include <iostream>
-#include <cstdio>
 #include <vector>
 #include <algorithm>
 //using std::vector;
@@ -18,6 +17,9 @@ private:
 	vector< vector<int> > surface = vector< vector<int> >( 0, vector < int > (4));
 	int elt;
 	void GriddingMolecule(double r, double step);
+	static bool sort_by_value(const vector <int>& vec1, const vector <int>& vec2);
+	static bool sort_by_coord(const vector <int>& vec1, const vector <int>& vec2);
+
 //	void GriddingTotal();
 public:
 	SAScore(double r, double step);//test

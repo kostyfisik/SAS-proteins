@@ -1,6 +1,18 @@
 #include "SAScore.h"
 
-
+bool SAScore::sort_by_value(const vector <int>& vec1, const vector <int>& vec2) {
+	return vec1[3] < vec2[3];
+}
+bool SAScore::sort_by_coord(const vector <int>& vec1, const vector <int>& vec2) {
+	if (vec1[0] == vec2[0]) {
+		if (vec1[1] == vec2[1]) {
+			return vec1[2] < vec2[2];
+		}
+		else return vec1[1] < vec2[1];
+		}
+	else
+		return vec1[0] < vec2[0];
+}
 
 void SAScore::GriddingMolecule(double r, double step) {
 	int h = round(r / step);
@@ -81,9 +93,13 @@ for (int i = 0; i < SIZE; i++) {
 	
 	r_grid.pop_back();
 }
-	vector< vector<int> > a = surface;
-	sort(surface.begin(), surface.end());
-	int c = 0;
+	sort(surface.begin(),surface.end(), sort_by_coord);
+	for (int x = 0; x < surface.size(); x++) {
+		for (int y = 0; y < surface[x].size(); y++) {
+			cout << surface[x][y] << ' ';
+			}
+		cout << endl;
+	}
 }
 
 SAScore::SAScore(double r, double step)
