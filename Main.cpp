@@ -2,10 +2,9 @@
 #include <vector>
 #include <cmath>
 #include "SAScore.h"
-using std::vector;
 void main() {
-	double m[2][4] = {{8,8,8,5},{11,8,8,5}};
-	SAScore b(m,1,0.5);
+	std::vector < std::vector<int> > m(1, std::vector<int>(4));
+	SAScore<3> b (m,1,0.5);
 	//surface.push_back();
 	//b.PRINT();
 	system("pause");
