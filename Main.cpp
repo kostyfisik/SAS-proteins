@@ -4,7 +4,10 @@
 #include "SAScore.h"
 void main() {
 	std::vector < std::vector<int> > m(1, std::vector<int>(4));
-	SAScore<3> b (m,1,0.5);
+	for (int i = 0; i < 4; i++) {
+		m[0][i] = i;
+	}
+	SAScore <> b (m,1,0.5);
 	//surface.push_back();
 	//b.PRINT();
 	system("pause");
