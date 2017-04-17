@@ -10,7 +10,6 @@ private:
 	const double step_;
 	std::vector< std::vector<int> > surface_ = std::vector< std::vector<int> >(0, std::vector < int > (4));
 	std::vector< std::vector<int> > molecule_surface_ = std::vector< std::vector<int> >(0, std::vector < int >(4));
-	std::vector< std::vector<int> > solvent_surface_ = std::vector< std::vector<int> >(0, std::vector < int >(3));
 	struct grid_molecule_ {
 		double r;
 		std::vector< std::vector<int> > r_grid_ = std::vector< std::vector<int> >(0, std::vector < int >(dim+1));
@@ -26,16 +25,30 @@ private:
 	void SolventSurfaceBuilder_(const std::vector <int>& data);
 	static bool SortByValue_(const std::vector <int>& vec1, const std::vector <int>& vec2);
 	static bool SortByCoord_(const std::vector <int>& vec1, const std::vector <int>& vec2);
-	void DeleteEqualCoord_();
-	void SolventSurfaceBuilder_(std::vector<int> &data);
+	void DeleteEqualCoord_(std::vector< std::vector<int> > &surface);
 	void TotalSolventSurfaceBuilder_();
+	void SolventSurface_();
+	void DeleteZeros_(std::vector< std::vector<int> > &data);
 
 public:
 	 SAScore(std::vector< std::vector<double> > data, const double r, const double step);
 	 ~SAScore();
 };
 
+template <int dim>
+void SAScore<dim>::DeleteZeros_(std::vector< std::vector<int> > &data) {
+	sort(data.begin(), data.end(), SortByValue_);
+	while (data[0][3] == 0) {
+		data.erase(data.begin());
+	}
+}
 
+template <int dim>
+void SAScore<dim>::SolventSurface_() {
+	for (int i = 0; i < molecule_templates_[0].r_grid_.size(); i++) {
+		molecule_templates_[0].r_grid_[i][3] = 0;
+	}
+}
 
 template <int dim>
 bool SAScore<dim>::CoordCompare_(std::vector<int>& a, std::vector<int>& b) {
@@ -47,24 +60,25 @@ bool SAScore<dim>::CoordCompare_(std::vector<int>& a, std::vector<int>& b) {
 }
 
 template <int dim>
-void SAScore<dim>::DeleteEqualCoord_() {
-	int j = 1;
-	for (int i = 0; i < surface_.size() - 1; ++i) {
-		j = i+1;
-		while (CoordCompare_(surface_[i], surface_[j]) && j < surface_.size()) {
-			surface_.erase(surface_.begin() + j);
-			++j;
+void SAScore<dim>::DeleteEqualCoord_(std::vector< std::vector<int> > &surface) {
+	for (int i = 0; i < surface.size() - 1; ++i) {
+		while (CoordCompare_(surface[i], surface[i+1]) && i < surface.size() - 1) {
+			surface.erase(surface.begin() + i+1);
 		}	
 	}
 }
+
+
+
 template <int dim>
-void SAScore<dim>::SolventSurfaceBuilder_(std::vector<int> &data) {
-	std::vector <int> coord(dim);
+void SAScore<dim>::SolventSurfaceBuilder_(const std::vector<int> &data) {
+	std::vector <int> coord(dim+1);
 	for (auto i : molecule_templates_[0].r_grid_) {
 		for (int j=0; j < dim; ++j) {
 			coord[j] = data[j] + i[j];
 		}
-		solvent_surface_.push_back(coord);
+		coord[dim] = 0;
+		molecule_surface_.push_back(coord);
 	}
 }
 
@@ -78,15 +92,9 @@ void SAScore<dim>::TotalSolventSurfaceBuilder_() {
 	for (i; i < surface_.size(); ++i) {
 		SolventSurfaceBuilder_(surface_[i]);
 	}
-	for (int j = 0; j < solvent_surface_.size(); ++j) {
-		for (i = 0; i < a; ++i) {
-			if (CoordCompare_(surface_[i], solvent_surface_[j])) {
-				molecule_surface_.erase(molecule_surface_.begin() + i);
-				--a;
-				break;
-			}
-		}
-	}
+	sort(molecule_surface_.begin(), molecule_surface_.end(), SortByCoord_);
+	DeleteEqualCoord_(molecule_surface_);
+	DeleteZeros_(molecule_surface_);
 }
 
 template <int dim>
@@ -141,7 +149,7 @@ void SAScore<dim>::GriddingMolecule_(const double r) {
 	int x[3];
 	for (int i = 0; i < 3; ++i)
 		x[i] = 0;
-	double r_sq = pow(r, 2), check_r_sq = 0, check_step_sq = pow(step_,2)/2;
+	double r_sq = pow(r, 2), check_r_sq = 0, R_sq =pow((h+1)*step_,2);
 	grid_molecule_ molecule_template;
 	molecule_template.r = r;
  	std::vector <int> coord(dim+1,0);
@@ -154,7 +162,7 @@ void SAScore<dim>::GriddingMolecule_(const double r) {
 				for (int i = 0; i < dim; i++) {
 					check_r_sq += pow(coord[i] * step_, 2);
 				}
-				if (check_r_sq <= r_sq && r_sq < pow(sqrt(check_r_sq)+step_/sqrt(2),2)){ //Should be modifieded
+				if (check_r_sq <= r_sq && r_sq < R_sq){ //Should be modifieded
 					coord[dim] = 2;
 					molecule_template.r_grid_.push_back(coord);
 				}
@@ -174,6 +182,7 @@ SAScore<dim>::SAScore(std::vector< std::vector<double> > data, const double r, c
 {
 	std::cout << "Gridding a molecule of solvent" << std::endl;
 	GriddingMolecule_(r);
+	SolventSurface_();
 	std::cout << "Gridding molecules of the protein" << std::endl;
 	for (auto i : data) {
 		if (!RadiusCheck_(i[dim])) {
@@ -185,7 +194,7 @@ SAScore<dim>::SAScore(std::vector< std::vector<double> > data, const double r, c
 		}
 	}
 	sort(surface_.begin(), surface_.end(), SortByCoord_);
-	DeleteEqualCoord_();
+	DeleteEqualCoord_(surface_);
 	sort(surface_.begin(), surface_.end(), SortByValue_);
 	molecule_surface_ = surface_;
 	TotalSolventSurfaceBuilder_();

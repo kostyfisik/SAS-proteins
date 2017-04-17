@@ -3,8 +3,8 @@
 #include <cmath>
 #include "SAScore.h"
 void main() {
-	std::vector < std::vector<double> > m(1, { 1,2,3, 3 });
-	m.push_back({ 10,2,3,5 });
+	std::vector < std::vector<double> > m(1, { 1,2,3, 50 });
+	//m.push_back({ 8,2,3,3 });
 	SAScore <> b (m, 1, 0.5);
 	system("pause");
 }
