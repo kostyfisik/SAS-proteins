@@ -40,7 +40,7 @@ public:
 template <int dim>
 void SAScore<dim>::DeleteZeros_(std::vector< std::vector<int> > &data) {
 	sort(data.begin(), data.end(), SortByValue_);
-	while (data[0][3] == 0) {
+	while (data[0][3] == 0) { // Use dim-1 istead of 3?
 		data.erase(data.begin());
 	}
 }
@@ -48,7 +48,7 @@ void SAScore<dim>::DeleteZeros_(std::vector< std::vector<int> > &data) {
 template <int dim>
 void SAScore<dim>::SolventSurface_() {
 	for (int i = 0; i < molecule_templates_[0].r_grid_.size(); i++) {
-		molecule_templates_[0].r_grid_[i][3] = 0;
+          molecule_templates_[0].r_grid_[i][3] = 0; // Use dim-1 istead of 3?
 	}
 }
 
@@ -87,7 +87,11 @@ void SAScore<dim>::SolventSurfaceBuilder_(const std::vector<int> &data) {
 template <int dim>
 void SAScore<dim>::TotalSolventSurfaceBuilder_() {
 	int i = 0;
-	while (surface_[i][dim] != 2){
+	while (surface_[i][dim] != 2){ // Use dim-1 istead of dim?
+          // Change 2 to strong enum, e.g.
+          // enum class State {kEmpty, kBoundary, kFilled};
+          // and use it like this  var != State::kEmpty
+          // leading k is due to Google coding style
 		++i;
 	}
 	int a = i;
@@ -127,11 +131,21 @@ bool SAScore<dim>::RadiusCheck_(const double r) {
 
 template <int dim>
 bool SAScore<dim>::SortByValue_(const std::vector <int>& vec1, const std::vector <int>& vec2) {
-	return vec1[dim] < vec2[dim];
+  return vec1[dim] < vec2[dim]; // dim-1 ?
 }
 
 template <int dim>
 bool SAScore<dim>::SortByCoord_(const std::vector <int>& vec1, const std::vector <int>& vec2) {
+  /*
+    Should be something like
+    for (int i = 0; i < dim-1; ++i) {
+      if (vec1[i] == vec2[i]) continue;
+      return vec1[i] < vec2[i];
+    }
+    return vec1[0] < vec2[0];
+    
+  */
+  // HORROR!!!
 	if (vec1[0] == vec2[0]) {
 		if (vec1[1] == vec2[1]) {
 			if (vec1[2] == vec2[2]) {
@@ -155,6 +169,7 @@ void SAScore<dim>::GriddingMolecule_(const double r) {
 	grid_molecule_ molecule_template;
 	molecule_template.r = r;
  	std::vector <int> coord(dim+1,0);
+        // HORROR!!!
 	for (x[0] = 0; x[0] < 2 * h + 1; ++x[0]) {
 		for (x[1] = 0; x[1] < 2 * h + 1; ++x[1]) {
 			for (x[2] = 0; x[2] <( 2 * h)*(dim-2) + 1; ++x[2]) {
