@@ -25,7 +25,7 @@ private:
 	std::vector< std::vector<int> > molecular_surface_ = std::vector< std::vector<int> >(0, std::vector < int >(dim + 1));
 	std::vector< std::vector<int> > *existing_molecule_template_;
 
-	//function
+	//functions
 	static bool SortByValue_(const std::vector <int>& vec1, const std::vector <int>& vec2);
 	static bool InvSortByValue_(const std::vector <int>& vec1, const std::vector <int>& vec2);
 	static bool SortByCoord_(const std::vector <int>& vec1, const std::vector <int>& vec2);
@@ -37,6 +37,7 @@ private:
 	void HydratedSurfaceBuilder_(const std::vector <double>& data);
 	void MolecularSurfaceBuilder_(const std::vector <double>& data);
 	void SolventTemplateApply_(const std::vector<int> &data);
+	void SaveEqualCoord_(std::vector< std::vector<int> >& data);
 
 public:
 	SAScore(std::vector< std::vector<double> >& data, const double& r, const double& step);
@@ -70,7 +71,7 @@ bool SAScore<dim>::InvSortByValue_(const std::vector <int>& vec1, const std::vec
 	return vec1[dim] > vec2[dim];
 }
 
-//compering by coordinate
+//comparing by coordinate
 template <int dim>
 bool SAScore<dim>::CoordCompare_(const std::vector<int>& a, const std::vector<int>& b) {
 	for (int i = 0; i < dim; ++i) {
@@ -80,7 +81,7 @@ bool SAScore<dim>::CoordCompare_(const std::vector<int>& a, const std::vector<in
 	return true;
 }
 
-//checking existing template by radius
+//checking existing template
 template <int dim>
 bool SAScore<dim>::RadiusCheck_(const double& r) {
 	for (auto i : molecule_templates_)
@@ -91,7 +92,7 @@ bool SAScore<dim>::RadiusCheck_(const double& r) {
 	return false;
 }
 
-//Gredding of a molecule
+//Gridding of a molecule
 template <int dim>
 void SAScore<dim>::MoleculeGridding_(const double& r) {
 	int r_int = round(r / step_);
@@ -108,7 +109,7 @@ void SAScore<dim>::MoleculeGridding_(const double& r) {
 					new_coord[i] = x[i] - r_int;
 					check_point_sq += pow(new_coord[i] * step_, 2);
 				}
-				//checking status of of cube
+				//defining status of of cube
 				if (min_r_sq <= check_point_sq && check_point_sq < max_r_sq) {//problem
 					new_coord[dim] = int(State::kBoundary);
 					molecule_template.grid_molecule_.push_back(new_coord);
@@ -211,7 +212,7 @@ template <int dim>
 void SAScore<dim>::MolecularSurfaceBuilder_(const std::vector <double>& data) {
 	//for (int i = 0; i < data.size(); ++i) {
 	for (auto i : data){
-		if (i[dim] != int(State::kBoundary) break;
+		if (i[dim] != int(State::kBoundary)) break;
 		SolventTemplateApply_(i);
 	}
 	sort(molecular_surface_.begin(), molecular_surface_.end(), SortByCoord_);
