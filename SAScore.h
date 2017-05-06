@@ -37,7 +37,7 @@ private:
 	void HydratedSurfaceBuilder_(const std::vector <double>& data);
 	void MolecularSurfaceBuilder_(const std::vector <double>& data);
 	void SolventTemplateApply_(const std::vector<int> &data);
-	void SaveEqualCoord_(std::vector< std::vector<int> >& data);
+	void SaveUniqCoord_(std::vector< std::vector<int> >& data);
 
 public:
 	SAScore(std::vector< std::vector<double> >& data, const double& r, const double& step);
@@ -156,7 +156,7 @@ void SAScore<dim>::DeleteEqualCoord_(std::vector< std::vector<int> >& data) {
 
 //Saving only equal coordinate(s) with state equal to kFilled(1)
 template <int dim>
-void SAScore<dim>::SaveEqualCoord_(std::vector< std::vector<int> >& data) {
+void SAScore<dim>::SaveUniqCoord_(std::vector< std::vector<int> >& data) {
 	int l = data.size() - 1;
 	std::vector < std::vector<int> > temp(0);
 	if (!CoordCompare_(data[0], data[1])) {
@@ -216,7 +216,7 @@ void SAScore<dim>::MolecularSurfaceBuilder_(const std::vector <double>& data) {
 		SolventTemplateApply_(i);
 	}
 	sort(molecular_surface_.begin(), molecular_surface_.end(), SortByCoord_);
-	SaveEqualCoord_(molecular_surface_);
+	SaveUniqCoord_(molecular_surface_);
 }
 
 //constructor
