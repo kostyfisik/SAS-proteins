@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <fstream>
 
 template <int dim = 3> class SAScore
 {
@@ -23,7 +24,7 @@ private:
 	std::vector <MoleculeTemplate> molecule_templates_ = std::vector <MoleculeTemplate>(0);
 	std::vector< std::vector<int> > hydrated_surface_ = std::vector< std::vector<int> >(0, std::vector < int >(dim + 1));
 	std::vector< std::vector<int> > molecular_surface_ = std::vector< std::vector<int> >(0, std::vector < int >(dim + 1));
-	std::vector< std::vector<int> > *existing_molecule_template_;
+	MoleculeTemplate* existing_molecule_template_;
 
 	//functions
 	static bool SortByValue_(const std::vector <int>& vec1, const std::vector <int>& vec2);
@@ -33,8 +34,8 @@ private:
 	bool RadiusCheck_(const double& r);
 	void MoleculeGridding_(const double& r);
 	void DeleteEqualCoord_(std::vector< std::vector<int> >& data);
-	void NewSpaceBuilder_(const std::vector <double>& data, MoleculeTemplate& molecule);
-	void HydratedSurfaceBuilder_(const std::vector <double>& data);
+	void NewSpaceBuilder_(const std::vector<double>& data, MoleculeTemplate& molecule);
+	void HydratedSurfaceBuilder_(const std::vector< std::vector<double> >& data);
 	void MolecularSurfaceBuilder_(const std::vector <double>& data);
 	void SolventTemplateApply_(const std::vector<int> &data);
 	void SaveUniqCoord_(std::vector< std::vector<int> >& data);
@@ -84,9 +85,9 @@ bool SAScore<dim>::CoordCompare_(const std::vector<int>& a, const std::vector<in
 //checking existing template
 template <int dim>
 bool SAScore<dim>::RadiusCheck_(const double& r) {
-	for (auto i : molecule_templates_)
-		if (r == i.r) {
-			existing_molecule_template_ = &i; //should be checked
+	for (int i=0; i< molecule_templates_.size(); ++i)
+		if (r == molecule_templates_[i].r) {
+			existing_molecule_template_ = &molecule_templates_[i]; //should be checked
 			return true;
 		}
 	return false;
@@ -97,7 +98,7 @@ template <int dim>
 void SAScore<dim>::MoleculeGridding_(const double& r) {
 	int r_int = round(r / step_);
 	int x[3] = { 0 };
-	double min_r_sq = pow(r, 2), check_point_sq = 0, max_r_sq = pow((r_int + 1)*step_, 2);
+	double r_sq = pow(r, 2), check_point_sq = 0, r_int_sq = pow(r_int*step_, 2);
 	MoleculeTemplate molecule_template;
 	molecule_template.r = r;
 	std::vector <int> new_coord(dim + 1, 0);
@@ -110,11 +111,11 @@ void SAScore<dim>::MoleculeGridding_(const double& r) {
 					check_point_sq += pow(new_coord[i] * step_, 2);
 				}
 				//defining status of of cube
-				if (min_r_sq <= check_point_sq && check_point_sq < max_r_sq) {//problem
+				if (r_int_sq == check_point_sq && check_point_sq <= r_sq) {//problem
 					new_coord[dim] = int(State::kBoundary);
 					molecule_template.grid_molecule_.push_back(new_coord);
 				}
-				else if (check_point_sq < min_r_sq) {
+				else if (check_point_sq < r_int_sq) {
 					new_coord[dim] = int(State::kFilled);
 					molecule_template.grid_molecule_.push_back(new_coord);
 				}
@@ -127,14 +128,14 @@ void SAScore<dim>::MoleculeGridding_(const double& r) {
 
 //building new space
 template <int dim>
-void SAScore<dim>::NewSpaceBuilder_(const std::vector <double>& data, MoleculeTemplate& molecule) {
+void SAScore<dim>::NewSpaceBuilder_(const std::vector<double>& data, MoleculeTemplate& molecule) {
 		
 	std::vector <int> centre_coord(dim, 0);
 	std::vector <int> new_coord(dim + 1, 0);
 	for (int i = 0; i < dim; ++i) {
 		centre_coord[i] = round(data[i] / step_);
 	}
-	for (auto i : molecule.r_grid_) {
+	for (auto i : molecule.grid_molecule_) {
 		for (int j = 0; j < dim; ++j) {
 			new_coord[j] = centre_coord[j] + i[j];
 		}
@@ -181,14 +182,17 @@ void SAScore<dim>::SaveUniqCoord_(std::vector< std::vector<int> >& data) {
 
 //bulding of hydrated surface
 template <int dim>
-void SAScore<dim>::HydratedSurfaceBuilder_(const std::vector <double>& data) {
+void SAScore<dim>::HydratedSurfaceBuilder_(const std::vector< std::vector<double> >& data) {
 	for (auto i : data) {
 		if (!RadiusCheck_(i[dim])) {
 			MoleculeGridding_(i[dim]);
+			std::cout << "Gridding" << std::endl;
 			NewSpaceBuilder_(i, molecule_templates_.back());
+			std::cout << "Building" << std::endl;
 		}
 		else {
-			NewSpaceBuilder_(i, existing_molecule_template_);
+			NewSpaceBuilder_(i, *existing_molecule_template_);
+			std::cout << "Building" << std::endl;
 		}
 	}
 	sort(hydrated_surface_.begin(), hydrated_surface_.end(), SortByCoord_);
@@ -226,6 +230,18 @@ SAScore<dim>::SAScore(std::vector< std::vector<double> >& data, const double& r,
 	std::cout << "Gridding a molecule of solvent" << std::endl;
 	MoleculeGridding_(r);
 	std::cout << "Gridding molecules of the protein" << std::endl;
+	HydratedSurfaceBuilder_(data);
+	
+	std::ofstream myfile;
+	myfile.open("example.txt");
+	for (auto i : hydrated_surface_) {
+		for (int j = 0; j < dim; ++j) {
+			myfile << i[j] << ' ';
+		}
+		myfile << std::endl;
+	}
+
+	myfile.close();
 }
 
 //destructor
