@@ -169,4 +169,34 @@ std::cout << mat[t][i][j] << ' ';
 std::cout << std::endl;
 }
 system("pause");
+}
+
+template <int dim>
+bool SAScore<dim>::RadiusCheck_(const double r) {
+	for (auto i : molecule_templates_)
+		if (r == i.r) {
+			exist_molecule_template_ = i;
+			return true;
+		}
+	return false;
+}
+
+template <int dim>
+bool SAScore<dim>::SortByValue_(const std::vector <int>& vec1, const std::vector <int>& vec2) {
+	return vec1[dim] < vec2[dim];
+}
+
+template <int dim>
+bool SAScore<dim>::SortByCoord_(const std::vector <int>& vec1, const std::vector <int>& vec2) {
+	if (vec1[0] == vec2[0]) {
+		if (vec1[1] == vec2[1]) {
+			if (vec1[2] == vec2[2]) {
+				return vec1[3] < vec2[3];
+			}
+			else return vec1[2] < vec2[2];
+		}
+		else return vec1[1] < vec2[1];
+	}
+	else
+		return vec1[0] < vec2[0];
 }*/

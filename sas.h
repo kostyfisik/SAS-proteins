@@ -1,3 +1,21 @@
+Skip to content
+This repository
+Search
+Pull requests
+Issues
+Gist
+@Yarokha
+Sign out
+Unwatch 1
+Star 0
+Fork 1 Yarokha / SAS - proteins
+Code  Issues 0  Pull requests 1  Projects 0  Wiki  Pulse  Graphs  Settings
+Branch : master Find file Copy pathSAS - proteins / sas.h
+	eaadbb5  3 days ago
+	@Yarokha Yarokha full update
+	1 contributor
+	RawBlameHistory
+	232 lines(212 sloc)  6.37 KB
 #pragma once
 #ifndef SAScore_H_
 #define SAScore_H_
@@ -5,7 +23,7 @@
 #include <vector>
 #include <algorithm>
 
-template <int dim = 3> class SAScore
+	template <int dim = 3> class SAScore
 {
 private:
 
@@ -230,3 +248,5 @@ SAScore<dim>::~SAScore()
 {
 }
 #endif 
+Contact GitHub API Training Shop Blog About
+© 2017 GitHub, Inc.Terms Privacy Security Status Help
