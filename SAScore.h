@@ -36,7 +36,7 @@ private:
 	void DeleteEqualCoord_(std::vector< std::vector<int> >& data);
 	void NewSpaceBuilder_(const std::vector<double>& data, MoleculeTemplate& molecule);
 	void HydratedSurfaceBuilder_(const std::vector< std::vector<double> >& data);
-	void MolecularSurfaceBuilder_(const std::vector <double>& data);
+	void MolecularSurfaceBuilder_(std::vector< std::vector<int> >& data);
 	void SolventTemplateApply_(const std::vector<int> &data);
 	void SaveUniqCoord_(std::vector< std::vector<int> >& data);
 
@@ -148,11 +148,13 @@ void SAScore<dim>::NewSpaceBuilder_(const std::vector<double>& data, MoleculeTem
 //Deleting equal coordinate(s) 
 template <int dim>
 void SAScore<dim>::DeleteEqualCoord_(std::vector< std::vector<int> >& data) {
-	for (int i = 0; i < data.size() - 1; ++i) {
-		while (CoordCompare_(data[i], data[i + 1]) && i < data.size() - 1) {
-			data.erase(data.begin() + i + 1);
-		}
+	std::vector< std::vector<int> > temp (0);
+	if (!CoordCompare_(data[0], data[1])) temp.push_back(data[0]);
+	for (int i = 1; i < data.size() - 1; ++i) {
+		if (!CoordCompare_(data[i - 1], data[i]))
+			temp.push_back(data[i]);
 	}
+	data = temp;
 }
 
 //Saving only equal coordinate(s) with state equal to kFilled(1)
@@ -204,20 +206,33 @@ void SAScore<dim>::SolventTemplateApply_(const std::vector<int> &data) {
 	std::vector <int> cube(dim + 1);
 	for (auto i : molecule_templates_[0].grid_molecule_) {
 		for (int j = 0; j < dim; ++j) {
-			cude[j] = data[j] + i[j];
+			cube[j] = data[j] + i[j];
 		}
 		cube[dim] = int(State::kEmpty);
 		molecular_surface_.push_back(cube);
 	}
 }
 
-//bulding of molecular surface
+//building of molecular boundary
 template <int dim>
-void SAScore<dim>::MolecularSurfaceBuilder_(const std::vector <double>& data) {
-	//for (int i = 0; i < data.size(); ++i) {
+void SAScore<dim>::MolecularBoundaryBuilder_() {
+	for (int i = 0; i< molecular_surface_.size(); ++i) {
+
+	}
+}
+
+
+//building of molecular surface
+template <int dim>
+void SAScore<dim>::MolecularSurfaceBuilder_(std::vector< std::vector<int> >& data) {
+	int j = 0;
+	molecular_surface_ = hydrated_surface_;
+	sort(hydrated_surface_.begin(), hydrated_surface_.end(), InvSortByValue_);
 	for (auto i : data){
-		if (i[dim] != int(State::kBoundary)) break;
+		if (i[dim] != int(State::kBoundary)) 
+			break;
 		SolventTemplateApply_(i);
+		++j;
 	}
 	sort(molecular_surface_.begin(), molecular_surface_.end(), SortByCoord_);
 	SaveUniqCoord_(molecular_surface_);
@@ -231,10 +246,10 @@ SAScore<dim>::SAScore(std::vector< std::vector<double> >& data, const double& r,
 	MoleculeGridding_(r);
 	std::cout << "Gridding molecules of the protein" << std::endl;
 	HydratedSurfaceBuilder_(data);
-	
+	MolecularSurfaceBuilder_(hydrated_surface_);
 	std::ofstream myfile;
 	myfile.open("example.txt");
-	for (auto i : hydrated_surface_) {
+	for (auto i : molecular_surface_) {
 		for (int j = 0; j < dim; ++j) {
 			myfile << i[j] << ' ';
 		}
@@ -242,6 +257,7 @@ SAScore<dim>::SAScore(std::vector< std::vector<double> >& data, const double& r,
 	}
 
 	myfile.close();
+
 }
 
 //destructor
