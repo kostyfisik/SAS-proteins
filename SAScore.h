@@ -37,8 +37,10 @@ private:
 	void NewSpaceBuilder_(const std::vector<double>& data, MoleculeTemplate& molecule);
 	void HydratedSurfaceBuilder_(const std::vector< std::vector<double> >& data);
 	void MolecularSurfaceBuilder_(std::vector< std::vector<int> >& data);
-	void SolventTemplateApply_(const std::vector<int> &data);
+	void SolventTemplateApply_(const std::vector<int>& data);
 	void SaveUniqCoord_(std::vector< std::vector<int> >& data);
+	bool CheckBoundaryState_(const std::vector<int>& cube1, const std::vector<int>& cube2);
+	void MolecularBoundaryBuilder_();
 
 public:
 	SAScore(std::vector< std::vector<double> >& data, const double& r, const double& step);
@@ -72,7 +74,7 @@ bool SAScore<dim>::InvSortByValue_(const std::vector <int>& vec1, const std::vec
 	return vec1[dim] > vec2[dim];
 }
 
-//comparing by coordinate
+//comparing of coordinates
 template <int dim>
 bool SAScore<dim>::CoordCompare_(const std::vector<int>& a, const std::vector<int>& b) {
 	for (int i = 0; i < dim; ++i) {
@@ -188,21 +190,20 @@ void SAScore<dim>::HydratedSurfaceBuilder_(const std::vector< std::vector<double
 	for (auto i : data) {
 		if (!RadiusCheck_(i[dim])) {
 			MoleculeGridding_(i[dim]);
-			std::cout << "Gridding" << std::endl;
 			NewSpaceBuilder_(i, molecule_templates_.back());
-			std::cout << "Building" << std::endl;
 		}
 		else {
 			NewSpaceBuilder_(i, *existing_molecule_template_);
-			std::cout << "Building" << std::endl;
 		}
 	}
+
 	sort(hydrated_surface_.begin(), hydrated_surface_.end(), SortByCoord_);
 	DeleteEqualCoord_(hydrated_surface_);
 }
 
+//applying solvent template on the boundary 
 template <int dim>
-void SAScore<dim>::SolventTemplateApply_(const std::vector<int> &data) {
+void SAScore<dim>::SolventTemplateApply_(const std::vector<int>& data) {
 	std::vector <int> cube(dim + 1);
 	for (auto i : molecule_templates_[0].grid_molecule_) {
 		for (int j = 0; j < dim; ++j) {
@@ -213,29 +214,38 @@ void SAScore<dim>::SolventTemplateApply_(const std::vector<int> &data) {
 	}
 }
 
+//Check boundary of molecular surface
+template <int dim>
+bool SAScore<dim>::CheckBoundaryState_(const std::vector<int>& cube1, const std::vector<int>& cube2) {
+	int d = 0;
+	for (int i = 0; i < dim; ++i) {
+		d += abs(cube1[i] - cube2[i]);
+	}
+	if (d > 2) return true;
+	else return false;
+}
+
 //building of molecular boundary
 template <int dim>
 void SAScore<dim>::MolecularBoundaryBuilder_() {
-	for (int i = 0; i< molecular_surface_.size(); ++i) {
-
+	for (int i = 0; i< molecular_surface_.size()-1; ++i) {
+		if (CheckBoundaryState_(molecular_surface_[i], molecular_surface_[i + 1]))
+			molecular_surface_[i][dim] = molecular_surface_[i + 1][dim] = int(State::kBoundary);
 	}
 }
-
 
 //building of molecular surface
 template <int dim>
 void SAScore<dim>::MolecularSurfaceBuilder_(std::vector< std::vector<int> >& data) {
-	int j = 0;
 	molecular_surface_ = hydrated_surface_;
 	sort(hydrated_surface_.begin(), hydrated_surface_.end(), InvSortByValue_);
 	for (auto i : data){
-		if (i[dim] != int(State::kBoundary)) 
-			break;
+		if (i[dim] != int(State::kBoundary)) break;
 		SolventTemplateApply_(i);
-		++j;
 	}
 	sort(molecular_surface_.begin(), molecular_surface_.end(), SortByCoord_);
 	SaveUniqCoord_(molecular_surface_);
+	MolecularBoundaryBuilder_();
 }
 
 //constructor
@@ -244,20 +254,28 @@ SAScore<dim>::SAScore(std::vector< std::vector<double> >& data, const double& r,
 {
 	std::cout << "Gridding a molecule of solvent" << std::endl;
 	MoleculeGridding_(r);
-	std::cout << "Gridding molecules of the protein" << std::endl;
+	std::cout << "Finished!!!" << std::endl;
+	std::cout << "Gridding molecules of the protein and building of hydrated surface" << std::endl;
 	HydratedSurfaceBuilder_(data);
+	std::cout << "Finished!!!" << std::endl;
+	std::cout << "Building of molecular surface" << std::endl;
 	MolecularSurfaceBuilder_(hydrated_surface_);
+	std::cout << "Finished!!!" << std::endl;
+	
+	std::cout << "Writting in file" << std::endl;
 	std::ofstream myfile;
 	myfile.open("example.txt");
 	for (auto i : molecular_surface_) {
-		for (int j = 0; j < dim; ++j) {
-			myfile << i[j] << ' ';
+		if (i[dim] == 2) {
+			for (int j = 0; j <= dim; ++j) {
+				myfile << i[j] << ' ';
+			}
+			myfile << std::endl;
 		}
-		myfile << std::endl;
 	}
 
 	myfile.close();
-
+	std::cout << "Finished!!!" << std::endl;
 }
 
 //destructor
