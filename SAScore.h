@@ -29,7 +29,10 @@ private:
 	//functions
 	static bool SortByValue_(const std::vector <int>& vec1, const std::vector <int>& vec2);
 	static bool InvSortByValue_(const std::vector <int>& vec1, const std::vector <int>& vec2);
-	static bool SortByCoord_(const std::vector <int>& vec1, const std::vector <int>& vec2);
+	static bool SortByCoordXYZState_(const std::vector <int>& vec1, const std::vector <int>& vec2);
+	static bool SortByCoordXYZ_(const std::vector <int>& vec1, const std::vector <int>& vec2);
+	static bool SortByCoordYZX_(const std::vector <int>& vec1, const std::vector <int>& vec2);
+	static bool SortByCoordZXY_(const std::vector <int>& vec1, const std::vector <int>& vec2);
 	bool CoordCompare_(const std::vector<int>& a, const std::vector<int>& b);
 	bool RadiusCheck_(const double& r);
 	void MoleculeGridding_(const double& r);
@@ -47,9 +50,39 @@ public:
 	~SAScore();
 };
 
-//sorting by coordinates and value
+//sorting by coordinates in XYZ
 template <int dim>
-bool SAScore<dim>::SortByCoord_(const std::vector <int>& vec1, const std::vector <int>& vec2) {
+bool SAScore<dim>::SortByCoordXYZ_(const std::vector <int>& vec1, const std::vector <int>& vec2) {
+	for (int i = 0; i < dim; ++i) {
+		if (vec1[i] == vec2[i]) continue;
+		return vec1[i] < vec2[i];
+	}
+	return vec1[dim-1] < vec2[dim-1];
+}
+
+//sorting by coordinates in YZX
+template <int dim>
+bool SAScore<dim>::SortByCoordYZX_(const std::vector <int>& vec1, const std::vector <int>& vec2) {
+	for (int i = 1; i < dim; ++i) {
+		if (vec1[i] == vec2[i]) continue;
+		return vec1[i] < vec2[i];
+	}
+	return vec1[0] < vec2[0];
+}
+
+//sorting by coordinates in ZXY
+template <int dim>
+bool SAScore<dim>::SortByCoordZXY_(const std::vector <int>& vec1, const std::vector <int>& vec2) {
+	for (int i = dim - 1; i >0; i -= 2) {
+		if (vec1[i] == vec2[i]) continue;
+		return vec1[i] < vec2[i];
+	}
+	return vec1[1] < vec2[1];
+}
+
+//sorting by coordinates in XYZ and state
+template <int dim>
+bool SAScore<dim>::SortByCoordXYZState_(const std::vector <int>& vec1, const std::vector <int>& vec2) {
 	for (int i = 0; i <= dim; ++i) {
 		if (vec1[i] == vec2[i]) continue;
 		return vec1[i] < vec2[i];
@@ -197,7 +230,7 @@ void SAScore<dim>::HydratedSurfaceBuilder_(const std::vector< std::vector<double
 		}
 	}
 
-	sort(hydrated_surface_.begin(), hydrated_surface_.end(), SortByCoord_);
+	sort(hydrated_surface_.begin(), hydrated_surface_.end(), SortByCoordXYZState_);
 	DeleteEqualCoord_(hydrated_surface_);
 }
 
@@ -243,8 +276,12 @@ void SAScore<dim>::MolecularSurfaceBuilder_(std::vector< std::vector<int> >& dat
 		if (i[dim] != int(State::kBoundary)) break;
 		SolventTemplateApply_(i);
 	}
-	sort(molecular_surface_.begin(), molecular_surface_.end(), SortByCoord_);
+	sort(molecular_surface_.begin(), molecular_surface_.end(), SortByCoordXYZState_);
 	SaveUniqCoord_(molecular_surface_);
+	MolecularBoundaryBuilder_();
+	sort(molecular_surface_.begin(), molecular_surface_.end(), SortByCoordYZX_);
+	MolecularBoundaryBuilder_();
+	sort(molecular_surface_.begin(), molecular_surface_.end(), SortByCoordZXY_);
 	MolecularBoundaryBuilder_();
 }
 
@@ -262,16 +299,18 @@ SAScore<dim>::SAScore(std::vector< std::vector<double> >& data, const double& r,
 	MolecularSurfaceBuilder_(hydrated_surface_);
 	std::cout << "Finished!!!" << std::endl;
 	
+	sort(molecular_surface_.begin(), molecular_surface_.end(), SortByValue_);
+
 	std::cout << "Writting in file" << std::endl;
 	std::ofstream myfile;
 	myfile.open("example.txt");
 	for (auto i : molecular_surface_) {
-		if (i[dim] == 2) {
+		//if (i[dim] == 2) {
 			for (int j = 0; j <= dim; ++j) {
 				myfile << i[j] << ' ';
 			}
 			myfile << std::endl;
-		}
+		//}
 	}
 
 	myfile.close();

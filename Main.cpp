@@ -1,8 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <cmath>
 #include "SAScore.h"
+
 
 void main() {
 	//std::vector < std::vector<double> > m(1,{ 1,2,3, 3 });
