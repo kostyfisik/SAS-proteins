@@ -146,7 +146,7 @@ void SAScore<dim>::MoleculeGridding_(const double& r) {
 					check_point_sq += pow(new_coord[i] * step_, 2);
 				}
 				//defining status of of cube
-				if (r_int_sq == check_point_sq && check_point_sq <= r_sq) {//problem
+				if (r_int_sq == check_point_sq && check_point_sq <= r_sq) {//problem, big problem
 					new_coord[dim] = int(State::kBoundary);
 					molecule_template.grid_molecule_.push_back(new_coord);
 				}
@@ -185,7 +185,8 @@ template <int dim>
 void SAScore<dim>::DeleteEqualCoord_(std::vector< std::vector<int> >& data) {
 	std::vector< std::vector<int> > temp (0);
 	if (!CoordCompare_(data[0], data[1])) temp.push_back(data[0]);
-	for (int i = 1; i < data.size() - 1; ++i) {
+	for (int i = 1; i < data.size(); ++i) {
+		bool t = CoordCompare_(data[i - 1], data[i]);
 		if (!CoordCompare_(data[i - 1], data[i]))
 			temp.push_back(data[i]);
 	}
@@ -301,16 +302,16 @@ SAScore<dim>::SAScore(std::vector< std::vector<double> >& data, const double& r,
 	
 	sort(molecular_surface_.begin(), molecular_surface_.end(), SortByValue_);
 
-	std::cout << "Writting in file" << std::endl;
+	std::cout << "Writting in  file" << std::endl;
 	std::ofstream myfile;
 	myfile.open("example.txt");
-	for (auto i : molecular_surface_) {
-		//if (i[dim] == 2) {
+	for (auto i :/* molecule_templates_[1].grid_molecule_*/hydrated_surface_) {
+		if (i[dim] == 2) {
 			for (int j = 0; j <= dim; ++j) {
 				myfile << i[j] << ' ';
 			}
 			myfile << std::endl;
-		//}
+		}
 	}
 
 	myfile.close();
