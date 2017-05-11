@@ -44,7 +44,6 @@ private:
 	void SaveUniqCoord_(std::vector< std::vector<int> >& data);
 	bool CheckBoundaryState_(const std::vector<int>& cube1, const std::vector<int>& cube2);
 	void MolecularBoundaryBuilder_();
-
 public:
 	SAScore(std::vector< std::vector<double> >& data, const double& r, const double& step);
 	~SAScore();
@@ -57,7 +56,7 @@ bool SAScore<dim>::SortByCoordXYZ_(const std::vector <int>& vec1, const std::vec
 		if (vec1[i] == vec2[i]) continue;
 		return vec1[i] < vec2[i];
 	}
-	return vec1[dim-1] < vec2[dim-1];
+	return vec1[dim-1] < vec2[dim-1];///
 }
 
 //sorting by coordinates in YZX
@@ -133,7 +132,7 @@ template <int dim>
 void SAScore<dim>::MoleculeGridding_(const double& r) {
 	int r_int = round(r / step_);
 	int x[3] = { 0 };
-	double r_sq = pow(r, 2), check_point_sq = 0, r_int_sq = pow(r_int*step_, 2);
+	double r_sq = pow(r, 2), check_point_sq = 0, r_int_sq = pow((r_int-1)*step_, 2);
 	MoleculeTemplate molecule_template;
 	molecule_template.r = r;
 	std::vector <int> new_coord(dim + 1, 0);
@@ -146,11 +145,11 @@ void SAScore<dim>::MoleculeGridding_(const double& r) {
 					check_point_sq += pow(new_coord[i] * step_, 2);
 				}
 				//defining status of of cube
-				if (r_int_sq == check_point_sq && check_point_sq <= r_sq) {//problem, big problem
+				if (r_int_sq < check_point_sq && check_point_sq <= r_sq) {//problem, big problem
 					new_coord[dim] = int(State::kBoundary);
 					molecule_template.grid_molecule_.push_back(new_coord);
 				}
-				else if (check_point_sq < r_int_sq) {
+				else if (check_point_sq < r_sq) {
 					new_coord[dim] = int(State::kFilled);
 					molecule_template.grid_molecule_.push_back(new_coord);
 				}
@@ -186,7 +185,6 @@ void SAScore<dim>::DeleteEqualCoord_(std::vector< std::vector<int> >& data) {
 	std::vector< std::vector<int> > temp (0);
 	if (!CoordCompare_(data[0], data[1])) temp.push_back(data[0]);
 	for (int i = 1; i < data.size(); ++i) {
-		bool t = CoordCompare_(data[i - 1], data[i]);
 		if (!CoordCompare_(data[i - 1], data[i]))
 			temp.push_back(data[i]);
 	}
@@ -255,7 +253,7 @@ bool SAScore<dim>::CheckBoundaryState_(const std::vector<int>& cube1, const std:
 	for (int i = 0; i < dim; ++i) {
 		d += abs(cube1[i] - cube2[i]);
 	}
-	if (d > 2) return true;
+	if (d > 1) return true;
 	else return false;
 }
 
@@ -277,13 +275,16 @@ void SAScore<dim>::MolecularSurfaceBuilder_(std::vector< std::vector<int> >& dat
 		if (i[dim] != int(State::kBoundary)) break;
 		SolventTemplateApply_(i);
 	}
-	sort(molecular_surface_.begin(), molecular_surface_.end(), SortByCoordXYZState_);
-	SaveUniqCoord_(molecular_surface_);
-	MolecularBoundaryBuilder_();
+	sort(molecular_surface_.begin(), molecular_surface_.end(), SortByCoordXYZ_);
+	//qsort(molecular_surface_, molecular_surface_.size(),sizeof(std::vector<int>), compare);
+
+	//sort(molecular_surface_.begin(), molecular_surface_.end(), SortByCoordXYZ_);
+	//SaveUniqCoord_(molecular_surface_);
+	/*MolecularBoundaryBuilder_();
 	sort(molecular_surface_.begin(), molecular_surface_.end(), SortByCoordYZX_);
 	MolecularBoundaryBuilder_();
 	sort(molecular_surface_.begin(), molecular_surface_.end(), SortByCoordZXY_);
-	MolecularBoundaryBuilder_();
+	MolecularBoundaryBuilder_();*/
 }
 
 //constructor
@@ -301,17 +302,17 @@ SAScore<dim>::SAScore(std::vector< std::vector<double> >& data, const double& r,
 	std::cout << "Finished!!!" << std::endl;
 	
 	sort(molecular_surface_.begin(), molecular_surface_.end(), SortByValue_);
-
+	
 	std::cout << "Writting in  file" << std::endl;
 	std::ofstream myfile;
 	myfile.open("example.txt");
-	for (auto i :/* molecule_templates_[1].grid_molecule_*/hydrated_surface_) {
-		if (i[dim] == 2) {
+	for (auto i : /*molecule_templates_[0].grid_molecule_*/molecular_surface_) {
+		//if (i[dim] == 0) {
 			for (int j = 0; j <= dim; ++j) {
 				myfile << i[j] << ' ';
 			}
 			myfile << std::endl;
-		}
+	//	}
 	}
 
 	myfile.close();

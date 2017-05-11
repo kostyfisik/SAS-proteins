@@ -5,7 +5,7 @@
 
 
 void main() {
-	std::vector < std::vector<double> > m(1,{ 0,0, 10});
+	std::vector < std::vector<double> > m(1,{ 0,0, 5});
 	//m.push_back({ 10,2,3,3 });
 	/*std::vector<double> temp(5);
 	std::vector < std::vector<double> > m(0, std::vector<double>(5));
@@ -20,6 +20,6 @@ void main() {
 		m[i][4] = m[i][0];
 		m[i].erase(m[i].begin());
 	}*/
-	SAScore <2> b(m, 4, 0.5);
+	SAScore <2> b(m, 2.5, 0.5);
 	system("pause");
 }
