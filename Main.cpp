@@ -4,7 +4,7 @@
 #include "SAScore.h"
 
 
-void main() {
+int main() {
 	std::vector < std::vector<double> > m(1,{ 0,0, 5});
 	//m.push_back({ 10,2,3,3 });
 	/*std::vector<double> temp(5);
@@ -21,5 +21,6 @@ void main() {
 		m[i].erase(m[i].begin());
 	}*/
 	SAScore <2> b(m, 2.5, 0.5);
-	system("pause");
+	//system("pause");
+        return 0;
 }
