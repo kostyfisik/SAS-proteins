@@ -300,9 +300,23 @@ SAScore<dim>::SAScore(std::vector< std::vector<double> >& data, const double& r,
 	std::cout << "Building of molecular surface" << std::endl;
 	MolecularSurfaceBuilder_(hydrated_surface_);
 	std::cout << "Finished!!!" << std::endl;
+
+        
+        /* std::sort(molecular_surface_.begin(), molecular_surface_.end(), SortByValue_); */
+        std::sort(molecular_surface_.begin(), molecular_surface_.end(),
+                  [](const std::vector<int>& vec1, const std::vector<int>& vec2){
+                    for(size_t i = 0; i < vec1.size() && i < vec2.size(); ++i){
+                      if(vec1[i] > vec2[i]) return true;
+                      if(vec1[i] < vec2[i]) return false;
+                    }
+                    return true;
+                  }
+                  );
 	
-	sort(molecular_surface_.begin(), molecular_surface_.end(), SortByValue_);
-	
+        for (auto elem : molecular_surface_) {
+          for (auto  i : elem) std::cout<< i << " ";
+          std::cout<< std::endl;
+        }
 	std::cout << "Writting in  file" << std::endl;
 	std::ofstream myfile;
 	myfile.open("example.txt");
