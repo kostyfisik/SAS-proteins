@@ -1,3 +1,2 @@
 #!/bin/bash
-g++ Main.cpp -std=c++11 -o SAS.bin
-#./SAS.bin
+g++ Main.cpp -std=c++11 -o SAS.bin -O3 && ./SAS.bin

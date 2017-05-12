@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <fstream>
+#include <time.h>
 
 template <int dim = 3> class SAScore
 {
@@ -301,11 +302,16 @@ SAScore<dim>::SAScore(std::vector< std::vector<double> >& data, const double& r,
 	MolecularSurfaceBuilder_(hydrated_surface_);
 	std::cout << "Finished!!!" << std::endl;
 
+        timespec time1, time2;
+        long cpptime_nsec, cpptime_sec;
+        timespec diff(timespec start, timespec end);
+
+        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);       
         
         /* std::sort(molecular_surface_.begin(), molecular_surface_.end(), SortByValue_); */
         std::sort(molecular_surface_.begin(), molecular_surface_.end(),
                   [](const std::vector<int>& vec1, const std::vector<int>& vec2){
-                    for(size_t i = 0; i < vec1.size() && i < vec2.size(); ++i){
+                    for(std::size_t i = 0; i < vec1.size() && i < vec2.size(); ++i){
                       if(vec1[i] > vec2[i]) return false;
                       if(vec1[i] < vec2[i]) return true;
                     }
@@ -313,10 +319,18 @@ SAScore<dim>::SAScore(std::vector< std::vector<double> >& data, const double& r,
                   }
                   );
 	
-        for (auto elem : molecular_surface_) {
-          for (auto  i : elem) std::cout<< i << " ";
-          std::cout<< std::endl;
-        }
+        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
+        cpptime_nsec = diff(time1,time2).tv_nsec;
+        cpptime_sec = diff(time1,time2).tv_sec;
+        
+        /* for (auto elem : molecular_surface_) { */
+        /*   for (auto  i : elem) std::cout<< i << " "; */
+        /*   std::cout<< std::endl; */
+        /* } */
+        
+        printf("-- time consumed %lg sec to sort %li elements\n",
+               cpptime_sec+(cpptime_nsec/1e9), molecular_surface_.size());
+        
 	std::cout << "Writting in  file" << std::endl;
 	std::ofstream myfile;
 	myfile.open("example.txt");
@@ -337,6 +351,19 @@ SAScore<dim>::SAScore(std::vector< std::vector<double> >& data, const double& r,
 template <int dim>
 SAScore<dim>::~SAScore()
 {
+}
+
+timespec diff(timespec start, timespec end)
+{
+	timespec temp;
+	if ((end.tv_nsec-start.tv_nsec)<0) {
+		temp.tv_sec = end.tv_sec-start.tv_sec-1;
+		temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
+	} else {
+		temp.tv_sec = end.tv_sec-start.tv_sec;
+		temp.tv_nsec = end.tv_nsec-start.tv_nsec;
+	}
+	return temp;
 }
 
 #endif 

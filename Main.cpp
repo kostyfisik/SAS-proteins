@@ -29,7 +29,7 @@ int main() {
         //   m   -
         //   a   -
         //   b   - 
-	SAScore <2> b(m, 2.5, 0.5);
+	SAScore <2> b(m, 2.5, 0.05);
 	//system("pause");
         return 0;
 }
