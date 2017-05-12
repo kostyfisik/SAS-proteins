@@ -306,10 +306,10 @@ SAScore<dim>::SAScore(std::vector< std::vector<double> >& data, const double& r,
         std::sort(molecular_surface_.begin(), molecular_surface_.end(),
                   [](const std::vector<int>& vec1, const std::vector<int>& vec2){
                     for(size_t i = 0; i < vec1.size() && i < vec2.size(); ++i){
-                      if(vec1[i] > vec2[i]) return true;
-                      if(vec1[i] < vec2[i]) return false;
+                      if(vec1[i] > vec2[i]) return false;
+                      if(vec1[i] < vec2[i]) return true;
                     }
-                    return true;
+                    return false;
                   }
                   );
 	
